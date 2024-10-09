@@ -13,8 +13,6 @@ import (
 	"go.uber.org/zap"
 )
 
-const ()
-
 type gitlabReceiver struct {
 	host               component.Host
 	cancel             context.CancelFunc
