@@ -3,7 +3,6 @@ package gitlabreceiver
 import (
 	"encoding/hex"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"go.opentelemetry.io/collector/pdata/pcommon"
@@ -136,57 +135,204 @@ func getParsedGitlabTime(s string) pcommon.Timestamp {
 	return t
 }
 
-func newGlPipelineEvent() *glPipelineEvent {
-	return &glPipelineEvent{
-		Kind: "pipeline",
-		Pipeline: Pipeline{
-			Id:         1480179747,
-			Status:     "success",
-			Duration:   120,
-			Url:        "https://gitlab.com/project/pipeline/1480179747",
-			CreatedAt:  time.Now().Add(-5 * time.Minute).Format(time.RFC3339),
-			FinishedAt: time.Now().Format(time.RFC3339),
-			Sha:        "abc123def456",
-			Source:     "push",
-		},
-		Jobs: []Job{
-			{
-				Id:          101,
-				Name:        "build",
-				Status:      "success",
-				Stage:       "build",
-				CreatedAt:   time.Now().Add(-10 * time.Minute).Format(time.RFC3339),
-				StartedAt:   time.Now().Add(-9 * time.Minute).Format(time.RFC3339),
-				FinishedAt:  time.Now().Add(-5 * time.Minute).Format(time.RFC3339),
-				Url:         "https://gitlab.com/project/-/jobs/101",
-				ProjectPath: "group/project",
+func PipelineEvent_SetAttributes(t *testing.T) {
+	tests := []struct {
+		name     string
+		event    glPipelineEvent
+		expected map[string]string
+	}{
+		{
+			name: "With parent pipeline",
+			event: glPipelineEvent{
+				Pipeline: Pipeline{
+					Url:    "https://gitlab.com/test-pipeline",
+					Id:     123,
+					Source: "parent_pipeline",
+					Status: "success",
+				},
+				ParentPipeline: ParentPipeline{
+					Id: 456,
+					Project: Project{
+						Url: "https://gitlab.com/test-parent-project",
+					},
+				},
 			},
-			{
-				Id:          102,
-				Name:        "deploy",
-				Status:      "success",
-				Stage:       "deploy",
-				CreatedAt:   time.Now().Add(-6 * time.Minute).Format(time.RFC3339),
-				StartedAt:   time.Now().Add(-4 * time.Minute).Format(time.RFC3339),
-				FinishedAt:  time.Now().Add(-1 * time.Minute).Format(time.RFC3339),
-				Url:         "https://gitlab.com/project/-/jobs/102",
-				ProjectPath: "group/project",
+			expected: map[string]string{
+				conventionsAttributeCiCdPipelineUrl:       "https://gitlab.com/test-pipeline",
+				conventionsAttributeCidCPipelineRunId:     "123",
+				conventionsAttributeCiCdParentPipelineId:  "456",
+				conventionsAttributeCiCdParentPipelineUrl: "https://gitlab.com/test-parent-project/pipelines/456",
 			},
 		},
-		Project: Project{
-			Name: "example-project",
-			Id:   12345,
-			Path: "group/example-project",
-			Url:  "https://gitlab.com/group/example-project",
-		},
-		ParentPipeline: ParentPipeline{
-			Id: 1,
-			Project: Project{
-				Name: "parent-project",
-				Id:   54321,
-				Path: "group/parent-project",
-				Url:  "https://gitlab.com/group/parent-project",
+		{
+			name: "Without parent pipeline",
+			event: glPipelineEvent{
+				Pipeline: Pipeline{
+					Url:    "https://gitlab.com/test-pipeline",
+					Id:     124,
+					Source: "direct",
+					Status: "failed",
+				},
+				ParentPipeline: ParentPipeline{}, // No parent
+			},
+			expected: map[string]string{
+				conventionsAttributeCiCdPipelineUrl:   "https://gitlab.com/test-pipeline",
+				conventionsAttributeCidCPipelineRunId: "124",
 			},
 		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			span := ptrace.NewSpan()
+			tt.event.setAttributes(span)
+
+			for key, expectedValue := range tt.expected {
+				if actualValue, exists := span.Attributes().Get(key); !exists || actualValue.Str() != expectedValue {
+					t.Errorf("expected %s to be %s, got %s", key, expectedValue, actualValue.Str())
+				}
+			}
+		})
+	}
+}
+
+func Job_SetAttributes(t *testing.T) {
+	tests := []struct {
+		name     string
+		job      Job
+		expected map[string]string
+	}{
+		{
+			name: "Successful job",
+			job: Job{
+				Id:     789,
+				Url:    "https://gitlab.com/test-job-success",
+				Stage:  "test",
+				Status: "success",
+			},
+			expected: map[string]string{
+				conventionsAttributeCiCdTaskRunId:        "789",
+				conventionsAttributeCiCdTaskRunUrl:       "https://gitlab.com/test-job-success",
+				conventionsAttributeCiCdPipelineTaskType: "test",
+			},
+		},
+		{
+			name: "Failed job",
+			job: Job{
+				Id:     790,
+				Url:    "https://gitlab.com/test-job-fail",
+				Stage:  "deploy",
+				Status: "failed",
+			},
+			expected: map[string]string{
+				conventionsAttributeCiCdTaskRunId:        "790",
+				conventionsAttributeCiCdTaskRunUrl:       "https://gitlab.com/test-job-fail",
+				conventionsAttributeCiCdPipelineTaskType: "deploy",
+			},
+		},
+		{
+			name: "Job with empty URL",
+			job: Job{
+				Id:     791,
+				Url:    "",
+				Stage:  "build",
+				Status: "success",
+			},
+			expected: map[string]string{
+				conventionsAttributeCiCdTaskRunId:        "791",
+				conventionsAttributeCiCdTaskRunUrl:       "",
+				conventionsAttributeCiCdPipelineTaskType: "build",
+			},
+		},
+		{
+			name: "Job with empty stage",
+			job: Job{
+				Id:     792,
+				Url:    "https://gitlab.com/test-job-empty-stage",
+				Stage:  "",
+				Status: "success",
+			},
+			expected: map[string]string{
+				conventionsAttributeCiCdTaskRunId:        "792",
+				conventionsAttributeCiCdTaskRunUrl:       "https://gitlab.com/test-job-empty-stage",
+				conventionsAttributeCiCdPipelineTaskType: "",
+			},
+		},
+		{
+			name: "Job with special characters in URL",
+			job: Job{
+				Id:     793,
+				Url:    "https://gitlab.com/test-job-@#$%&",
+				Stage:  "integration",
+				Status: "success",
+			},
+			expected: map[string]string{
+				conventionsAttributeCiCdTaskRunId:        "793",
+				conventionsAttributeCiCdTaskRunUrl:       "https://gitlab.com/test-job-@#$%&",
+				conventionsAttributeCiCdPipelineTaskType: "integration",
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			span := ptrace.NewSpan()
+			tt.job.setAttributes(span)
+
+			for key, expectedValue := range tt.expected {
+				if actualValue, exists := span.Attributes().Get(key); !exists || actualValue.Str() != expectedValue {
+					t.Errorf("expected %s to be %s, got %s", key, expectedValue, actualValue.Str())
+				}
+			}
+		})
+	}
+}
+
+func TestSetSpanStatus(t *testing.T) {
+	tests := []struct {
+		name            string
+		status          string
+		expectedCode    ptrace.StatusCode
+		expectedMessage string
+	}{
+		{
+			name:            "Failed status",
+			status:          "failed",
+			expectedCode:    ptrace.StatusCodeError,
+			expectedMessage: "failed",
+		},
+		{
+			name:            "Successful status",
+			status:          "success",
+			expectedCode:    ptrace.StatusCodeOk,
+			expectedMessage: "success",
+		},
+		//In progress and unknown is considered "ok" for now.
+		{
+			name:            "In progress status",
+			status:          "in_progress",
+			expectedCode:    ptrace.StatusCodeOk,
+			expectedMessage: "in_progress",
+		},
+		{
+			name:            "Unknown status",
+			status:          "unknown",
+			expectedCode:    ptrace.StatusCodeOk,
+			expectedMessage: "unknown",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			span := ptrace.NewSpan()
+			setSpanStatus(span, tt.status)
+
+			if span.Status().Code() != tt.expectedCode {
+				t.Errorf("expected status code %v, got %v", tt.expectedCode, span.Status().Code())
+			}
+			if span.Status().Message() != tt.expectedMessage {
+				t.Errorf("expected status message %s, got %s", tt.expectedMessage, span.Status().Message())
+			}
+		})
 	}
 }

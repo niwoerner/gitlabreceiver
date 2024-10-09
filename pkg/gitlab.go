@@ -9,10 +9,6 @@ import (
 	"go.opentelemetry.io/collector/pdata/ptrace"
 )
 
-const (
-	gitlabEventTimeFormat = "2006-01-02 15:04:05 UTC"
-)
-
 type gitlabResource interface {
 	newTrace() (*ptrace.Traces, error)
 	setAttributes(ptrace.Span)
