@@ -137,7 +137,7 @@ func (glRcvr *gitlabReceiver) validateReq(req *http.Request) error {
 		return errors.New("Invalid HTTP method")
 	}
 
-	if req.Header.Get("Content-Type") != supportedContentType {
+	if req.Header.Get("Content-Type") != "application/json" {
 		return errors.New("Request has unsupported content type")
 	}
 
