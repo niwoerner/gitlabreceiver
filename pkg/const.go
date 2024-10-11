@@ -1,8 +1,7 @@
 package gitlabreceiver
 
 const (
-	gitlabEventTimeFormat = "2006-01-02 15:04:05 UTC"
-	supportedContentType  = "application/json"
+	gitlabEventTimeFormat = "2006-01-02 15:04:05 UTC" //iso8601Format
 
 	//Semconv 1.27.0: https://opentelemetry.io/docs/specs/semconv/attributes-registry/cicd/#cicd-pipeline-attributes
 	conventionsAttributeCiCdPipelineName     = "cicd.pipeline.name"

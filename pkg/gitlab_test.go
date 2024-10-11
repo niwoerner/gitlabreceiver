@@ -2,6 +2,9 @@ package gitlabreceiver
 
 import (
 	"encoding/hex"
+	"io"
+	"net/http"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -114,7 +117,7 @@ func TestCreateSpan(t *testing.T) {
 	rs := ptrace.NewResourceSpans()
 	resourceScopeSpans := rs.ScopeSpans()
 	for i, test := range tests {
-		createSpan(rs, test.traceId, test.spanId, test.parentId, test.name, "not-used", test.startTime, test.endTime, &test.glPipelineEvent)
+		createSpan(rs, test.traceId, test.spanId, test.parentId, test.name, test.startTime, test.endTime, &test.glPipelineEvent)
 		testSpan := resourceScopeSpans.At(i).Spans().At(0)
 		assert.Equal(t, hex.EncodeToString(test.traceId[:]), testSpan.TraceID().String(), "TraceID should be set correctly")
 		assert.Equal(t, hex.EncodeToString(test.spanId[:]), testSpan.SpanID().String(), "SpanID should be set correctly")
@@ -335,4 +338,52 @@ func TestSetSpanStatus(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestDecode(t *testing.T) {
+	req := &http.Request{
+		Body: io.NopCloser(strings.NewReader(gitlabPipelineEvent)),
+	}
+
+	got, err := decode[glPipelineEvent](req)
+	if err != nil {
+		t.Fatalf("expected no error, but got: %v", err)
+	}
+
+	want := glPipelineEvent{
+		Kind: "pipeline",
+		Pipeline: Pipeline{
+			Id:     1234567890,
+			Status: "pending",
+		},
+		Jobs: []Job{
+			Job{
+				Id:     7961245403,
+				Name:   "job1",
+				Status: "pending",
+			},
+		},
+	}
+	assert.Equal(t, want, got, "decoded result does not match expected")
+}
+
+func TestParseGitlabTime(t *testing.T) {
+	nullTime, err := parseGitlabTime("null")
+	if err != nil {
+		t.Fatalf("expected no error for nullTime, but got: %v", err)
+	}
+	assert.Equal(t, nullTime, pcommon.Timestamp(0x0))
+
+	emptyTime, err := parseGitlabTime("")
+	if err != nil {
+		t.Fatalf("expected no error for emptyTime, but got: %v", err)
+	}
+	assert.Equal(t, emptyTime, pcommon.Timestamp(0x0))
+
+	validTime, err := parseGitlabTime(gitlabStartTime)
+	if err != nil {
+		t.Fatalf("expected no error for a valid time, but got: %v", err)
+	}
+	expectedTimestamp := pcommon.Timestamp(1704112215000000000)
+	assert.Equal(t, validTime, expectedTimestamp)
 }

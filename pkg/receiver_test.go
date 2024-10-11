@@ -18,6 +18,34 @@ import (
 	"go.opentelemetry.io/collector/receiver/receivertest"
 )
 
+const (
+	//usual state after pipeline creation
+	pipelineCreatedJobPending = `{
+		"object_kind": "pipeline",
+		"object_attributes": {
+			"id": 1234567890
+		},
+		"builds": [
+			{
+				"id": 7961245403,
+				"stage": "stage1",
+				"name": "job1",
+				"status": "pending"
+			},			{
+				"id": 7961245403,
+				"stage": "stage2",
+				"name": "job2",
+				"status": "pending"
+			},			{
+				"id": 7961245403,
+				"stage": "stage3",
+				"name": "job3",
+				"status": "pending"
+			}
+		]
+	}`
+)
+
 func TestGitlabReceiverHttpServer(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	t.Cleanup(cancel) //clean up allocated resource when the test is finished
