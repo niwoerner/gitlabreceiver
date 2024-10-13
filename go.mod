@@ -1,4 +1,4 @@
-module github.com/nw0rn/opentelemetry-gitlabreceiver
+module github.com/nw0rn/gitlabreceiver
 
 go 1.22.0
 
