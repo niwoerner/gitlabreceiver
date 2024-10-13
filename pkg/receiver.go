@@ -68,23 +68,23 @@ func (glRcvr *gitlabReceiver) Shutdown(ctx context.Context) error {
 func (glRcvr *gitlabReceiver) startHTTPServer(ctx context.Context, host component.Host) error {
 	var err error
 	httpMux := http.NewServeMux()
-	glRcvr.httpServer, err = glRcvr.cfg.HTTP.ToServer(ctx, host, glRcvr.settings.TelemetrySettings, httpMux)
+	glRcvr.httpServer, err = glRcvr.cfg.ToServer(ctx, host, glRcvr.settings.TelemetrySettings, httpMux)
 	if err != nil {
 		return err
 	}
 
-	listener, err := glRcvr.cfg.HTTP.ServerConfig.ToListener(ctx)
+	listener, err := glRcvr.cfg.ServerConfig.ToListener(ctx)
 	if err != nil {
 		return err
 	}
 
 	if glRcvr.nextTracesConsumer != nil {
-		httpMux.HandleFunc(glRcvr.cfg.HTTP.TracesURLPath, func(resp http.ResponseWriter, req *http.Request) {
+		httpMux.HandleFunc(glRcvr.cfg.TracesURLPath, func(resp http.ResponseWriter, req *http.Request) {
 			glRcvr.handleTraces(ctx, resp, req)
 		})
 	}
 
-	glRcvr.logger.Info("Starting HTTP Server", zap.String("endpoint", glRcvr.cfg.HTTP.Endpoint))
+	glRcvr.logger.Info("Starting HTTP Server", zap.String("endpoint", glRcvr.cfg.Endpoint))
 
 	glRcvr.shutdownWG.Add(1)
 	go func() {

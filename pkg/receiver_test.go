@@ -58,7 +58,7 @@ func TestGitlabReceiverHttpServer(t *testing.T) {
 	}
 	p, err := getFreePort()
 	require.NoError(t, err, "error finding an available port")
-	cfg.Protocols.HTTP.Endpoint = fmt.Sprintf("localhost:%s", p)
+	cfg.Endpoint = fmt.Sprintf("localhost:%s", p)
 
 	glRcvr := newGitlabReceiver(cfg, s)
 	glRcvr.nextTracesConsumer = consumertest.NewNop()
@@ -99,7 +99,7 @@ func TestGitlabReceiverHttpServer(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			request, err := http.NewRequest(tc.httpMethod, fmt.Sprintf("http://%s%s", cfg.HTTP.Endpoint, cfg.HTTP.TracesURLPath), bytes.NewReader(tc.reqBody))
+			request, err := http.NewRequest(tc.httpMethod, fmt.Sprintf("http://%s%s", cfg.Endpoint, cfg.TracesURLPath), bytes.NewReader(tc.reqBody))
 			request.Header.Set("Content-Type", "application/json")
 			request.Header.Set("X-Gitlab-Event", "Pipeline Hook")
 			require.NoError(t, err, "Unable to create a request")
