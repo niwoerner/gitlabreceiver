@@ -6,6 +6,20 @@ The Gitlabreciever creates OpenTelemetry traces for Gitlab pipelines. It leverag
 
 This project is **not** officially affiliated with the CNCF project [OpenTelemetry](https://opentelemetry.io/).
 
+## Config
+
+```yaml
+receivers:
+  gitlab:
+    endpoint: localhost:9286 
+    traces_url_path: /v0.1/traces
+
+service:
+  pipelines:
+    traces:
+      receivers: [gitlab]
+```
+
 ## Gitlab <-> Otel Mapping
 
 Root Span = Pipeline \
@@ -32,3 +46,4 @@ If the Gitlab webhook is enabled for pipeline events it sends it for every statu
     - Note: If all jobs are finished the pipeline will have a "finishedAt" time. This time will be used to determine the span end.
 
 -> The Gitlabreceiver creates the trace for webhook event 3. Webhooks 1&2 are ignored for now.
+
