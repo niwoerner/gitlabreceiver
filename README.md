@@ -47,3 +47,39 @@ If the Gitlab webhook is enabled for pipeline events it sends it for every statu
 
 -> The Gitlabreceiver creates the trace for webhook event 3. Webhooks 1&2 are ignored for now.
 
+### Usage 
+
+To use the Gitlabreceiver a custom OpenTelemetry collector distribution needs to be created. This can be achieved with using the otel builder package and the following config. 
+
+builder.yaml
+```yaml 
+dist:
+  name: otelcol-dev
+  description: Basic OTel Collector distribution for Developers
+  output_path: ./otelcol-dev
+  otelcol_version: 0.111.0
+
+exporters:
+  - gomod: go.opentelemetry.io/collector/exporter/debugexporter v0.111.0
+  - gomod: go.opentelemetry.io/collector/exporter/otlpexporter v0.111.0
+
+processors:
+  - gomod: go.opentelemetry.io/collector/processor/batchprocessor v0.111.0
+
+receivers:
+  - gomod: go.opentelemetry.io/collector/receiver/otlpreceiver v0.111.0
+  - gomod: github.com/nw0rn/gitlabreceiver v0.101.0
+
+providers:
+  - gomod: go.opentelemetry.io/collector/confmap/provider/envprovider v1.17.0
+  - gomod: go.opentelemetry.io/collector/confmap/provider/fileprovider v1.17.0
+  - gomod: go.opentelemetry.io/collector/confmap/provider/httpprovider v1.17.0
+  - gomod: go.opentelemetry.io/collector/confmap/provider/httpsprovider v1.17.0
+  - gomod: go.opentelemetry.io/collector/confmap/provider/yamlprovider v1.17.0
+```
+
+```sh
+go install go.opentelemetry.io/collector/cmd/builder@v0.111.0
+builder --config=builder.yaml
+```
+
