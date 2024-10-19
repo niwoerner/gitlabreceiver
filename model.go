@@ -39,17 +39,26 @@ type glPipelineEvent struct {
 	Jobs           []Job          `json:"builds"`
 	Project        Project        `json:"project"`
 	ParentPipeline ParentPipeline `json:"source_pipeline"`
+	User           User           `json:"user"`
+	Commit         Commit         `json:"commit"`
 }
 
 type Pipeline struct {
-	Id         int    `json:"id"`
-	Status     string `json:"status"`
-	Duration   int    `json:"duration"`
-	Url        string `json:"url"`
-	CreatedAt  string `json:"created_at"`
-	FinishedAt string `json:"finished_at"`
-	Sha        string `json:"sha"`
-	Source     string `json:"source"`
+	Id             int         `json:"id"`
+	Status         string      `json:"status"`
+	Url            string      `json:"url"`
+	CreatedAt      string      `json:"created_at"`
+	FinishedAt     string      `json:"finished_at"`
+	Sha            string      `json:"sha"`
+	Source         string      `json:"source"`
+	Duration       int         `json:"duration"`
+	QueuedDuration int         `json:"queued_duration"`
+	Variables      []Variables `json:"variables"`
+}
+
+type Variables struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
 }
 
 type ParentPipeline struct {
@@ -67,4 +76,40 @@ type Job struct {
 	FinishedAt  string `json:"finished_at"`
 	Url         string
 	ProjectPath string
+	Runner      Runner      `json:"runner"`
+	Environment Environment `json:"environment"`
+}
+
+type User struct {
+	Id       int    `json:"id"`
+	Name     string `json:"name"`
+	Username string `json:"username"`
+	Email    string `json:"email"`
+}
+
+type Commit struct {
+	ID        string `json:"id"`
+	Message   string `json:"message"`
+	Title     string `json:"title"`
+	Timestamp string `json:"timestamp"`
+	URL       string `json:"url"`
+	Author    Author `json:"author"`
+}
+
+type Author struct {
+	Name  string `json:"name"`
+	Email string `json:"email"`
+}
+
+type Runner struct {
+	Id          int      `json:"id"`
+	Description string   `json:"description"`
+	Type        string   `json:"runner_type"`
+	IsActive    bool     `json:"active"`
+	IsShared    bool     `json:"is_shared"`
+	Tags        []string `json:"tags"`
+}
+
+type Environment struct {
+	Name string `json:"name"`
 }
