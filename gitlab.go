@@ -51,6 +51,7 @@ func (p *glPipelineEvent) newTrace() (*ptrace.Traces, error) {
 	rss.EnsureCapacity(len(p.Jobs) + 1 + 1)
 	rs := rss.AppendEmpty()
 	rs.Resource().Attributes().PutStr(conventions.AttributeServiceName, p.Project.Path)
+	rs.Resource().Attributes().PutStr(conventionsAttributeSpanSource, fmt.Sprintf("%s-receiver", typeStr.String()))
 
 	//The pipeline span is the root span, therefore 0 bytes for the parentSpanId
 	createSpan(rs, traceId, rootSpanId, [8]byte{0, 0, 0, 0, 0, 0, 0, 0}, pipelineName, startTime, endTime, p)
@@ -77,9 +78,25 @@ func (p *glPipelineEvent) newTrace() (*ptrace.Traces, error) {
 
 // CICD Pipeline semconv: https://opentelemetry.io/docs/specs/semconv/attributes-registry/cicd/#cicd-pipeline-attributes
 func (p glPipelineEvent) setAttributes(s ptrace.Span) {
-	s.Attributes().EnsureCapacity(3)
+	vc := len(p.Pipeline.Variables)
+	s.Attributes().EnsureCapacity(12 + vc)
 	s.Attributes().PutStr(conventionsAttributeCiCdPipelineUrl, p.Pipeline.Url)
 	s.Attributes().PutStr(conventionsAttributeCidCPipelineRunId, strconv.Itoa(p.Pipeline.Id))
+	s.Attributes().PutStr(conventionsAttributeCiCdPipelineDuration, strconv.Itoa(p.Pipeline.Duration))
+	s.Attributes().PutStr(conventionsAttributeCiCdPipelineQueuedDuration, strconv.Itoa(p.Pipeline.QueuedDuration))
+	s.Attributes().PutStr(conventionsAttributeCiCdPipelineUser, p.User.Name)
+	s.Attributes().PutStr(conventionsAttributeCiCdPipelineUsername, p.User.Username)
+	s.Attributes().PutStr(conventionsAttributeCiCdPipelineUserEmail, p.User.Email)
+
+	s.Attributes().PutStr(conventionsAttributeCiCdPipelineCommitMessage, p.Commit.Message)
+	s.Attributes().PutStr(conventionsAttributeCiCdPipelineCommitTitle, p.Commit.Title)
+	s.Attributes().PutStr(conventionsAttributeCiCdPipelineCommitTimestamp, p.Commit.Timestamp)
+	s.Attributes().PutStr(conventionsAttributeCiCdPipelineCommitUrl, p.Commit.URL)
+	s.Attributes().PutStr(conventionsAttributeCiCdPipelineCommitAuthorEmail, p.Commit.Author.Email)
+
+	for _, v := range p.Pipeline.Variables {
+		s.Attributes().PutStr(fmt.Sprintf("%s.%s", conventionsAttributeCiCdPipelineVariable, v.Key), v.Value)
+	}
 
 	if p.Pipeline.Source == "parent_pipeline" {
 		s.Attributes().PutStr(conventionsAttributeCiCdParentPipelineId, strconv.Itoa(p.ParentPipeline.Id))
@@ -101,10 +118,21 @@ func (j Job) setAttributes(s ptrace.Span) {
 		stage = "deploy"
 	}
 
-	s.Attributes().EnsureCapacity(3)
+	rtc := len(j.Runner.Tags)
+	s.Attributes().EnsureCapacity(8 + rtc)
 	s.Attributes().PutStr(conventionsAttributeCiCdTaskRunId, strconv.Itoa(j.Id))
 	s.Attributes().PutStr(conventionsAttributeCiCdTaskRunUrl, j.Url)
 	s.Attributes().PutStr(conventionsAttributeCiCdPipelineTaskType, stage)
+	s.Attributes().PutStr(conventionsAttributeCiCdJobEnvironment, j.Environment.Name)
+
+	s.Attributes().PutStr(conventionsAttributeCiCdJobRunnerId, strconv.Itoa(j.Runner.Id))
+	s.Attributes().PutStr(conventionsAttributeCiCdJobRunnerDescription, j.Runner.Description)
+	s.Attributes().PutStr(conventionsAttributeCiCdJobRunnerIsActive, strconv.FormatBool(j.Runner.IsActive))
+	s.Attributes().PutStr(conventionsAttributeCiCdJobRunnerIsShared, strconv.FormatBool(j.Runner.IsShared))
+
+	for _, t := range j.Runner.Tags {
+		s.Attributes().PutStr(conventionsAttributeCiCdJobRunnerTag, t)
+	}
 
 	setSpanStatus(s, j.Status)
 }

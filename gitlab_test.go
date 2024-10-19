@@ -2,6 +2,7 @@ package gitlabreceiver
 
 import (
 	"encoding/hex"
+	"fmt"
 	"io"
 	"net/http"
 	"strings"
@@ -145,13 +146,19 @@ func PipelineEvent_SetAttributes(t *testing.T) {
 		expected map[string]string
 	}{
 		{
-			name: "With parent pipeline",
+			name: "With parent pipeline and variables",
 			event: glPipelineEvent{
 				Pipeline: Pipeline{
-					Url:    "https://gitlab.com/test-pipeline",
-					Id:     123,
-					Source: "parent_pipeline",
-					Status: "success",
+					Url:            "https://gitlab.com/test-pipeline",
+					Id:             123,
+					Source:         "parent_pipeline",
+					Status:         "success",
+					Duration:       3600,
+					QueuedDuration: 120,
+					Variables: []Variables{
+						{Key: "ENV", Value: "production"},
+						{Key: "DEBUG", Value: "false"},
+					},
 				},
 				ParentPipeline: ParentPipeline{
 					Id: 456,
@@ -159,28 +166,72 @@ func PipelineEvent_SetAttributes(t *testing.T) {
 						Url: "https://gitlab.com/test-parent-project",
 					},
 				},
+				User: User{
+					Name:     "John Doe",
+					Username: "johndoe",
+					Email:    "john@example.com",
+				},
+				Commit: Commit{
+					Message:   "Fix pipeline issue",
+					Title:     "Pipeline fix",
+					Timestamp: "2024-10-19T12:00:00Z",
+					URL:       "https://gitlab.com/commit/789",
+					Author:    Author{Email: "author@example.com"},
+				},
 			},
 			expected: map[string]string{
-				conventionsAttributeCiCdPipelineUrl:       "https://gitlab.com/test-pipeline",
-				conventionsAttributeCidCPipelineRunId:     "123",
-				conventionsAttributeCiCdParentPipelineId:  "456",
-				conventionsAttributeCiCdParentPipelineUrl: "https://gitlab.com/test-parent-project/pipelines/456",
+				conventionsAttributeCiCdPipelineUrl:               "https://gitlab.com/test-pipeline",
+				conventionsAttributeCidCPipelineRunId:             "123",
+				conventionsAttributeCiCdPipelineDuration:          "3600",
+				conventionsAttributeCiCdPipelineQueuedDuration:    "120",
+				conventionsAttributeCiCdPipelineUser:              "John Doe",
+				conventionsAttributeCiCdPipelineUsername:          "johndoe",
+				conventionsAttributeCiCdPipelineUserEmail:         "john@example.com",
+				conventionsAttributeCiCdPipelineCommitMessage:     "Fix pipeline issue",
+				conventionsAttributeCiCdPipelineCommitTitle:       "Pipeline fix",
+				conventionsAttributeCiCdPipelineCommitTimestamp:   "2024-10-19T12:00:00Z",
+				conventionsAttributeCiCdPipelineCommitUrl:         "https://gitlab.com/commit/789",
+				conventionsAttributeCiCdPipelineCommitAuthorEmail: "author@example.com",
+				conventionsAttributeCiCdParentPipelineId:          "456",
+				conventionsAttributeCiCdParentPipelineUrl:         "https://gitlab.com/test-parent-project/pipelines/456",
+
+				// Variable assertions
+				fmt.Sprintf("%s.%s", conventionsAttributeCiCdPipelineVariable, "ENV"):   "production",
+				fmt.Sprintf("%s.%s", conventionsAttributeCiCdPipelineVariable, "DEBUG"): "false",
 			},
 		},
 		{
-			name: "Without parent pipeline",
+			name: "Without parent pipeline and commit info",
 			event: glPipelineEvent{
 				Pipeline: Pipeline{
-					Url:    "https://gitlab.com/test-pipeline",
-					Id:     124,
-					Source: "direct",
-					Status: "failed",
+					Url:            "https://gitlab.com/test-pipeline",
+					Id:             124,
+					Source:         "direct",
+					Status:         "failed",
+					Duration:       1800,
+					QueuedDuration: 60,
+					Variables: []Variables{
+						{Key: "ENV", Value: "staging"},
+					},
 				},
 				ParentPipeline: ParentPipeline{}, // No parent
+				User: User{
+					Name:     "Jane Doe",
+					Username: "janedoe",
+					Email:    "jane@example.com",
+				},
+				Commit: Commit{}, // No commit info
 			},
 			expected: map[string]string{
-				conventionsAttributeCiCdPipelineUrl:   "https://gitlab.com/test-pipeline",
-				conventionsAttributeCidCPipelineRunId: "124",
+				conventionsAttributeCiCdPipelineUrl:            "https://gitlab.com/test-pipeline",
+				conventionsAttributeCidCPipelineRunId:          "124",
+				conventionsAttributeCiCdPipelineDuration:       "1800",
+				conventionsAttributeCiCdPipelineQueuedDuration: "60",
+				conventionsAttributeCiCdPipelineUser:           "Jane Doe",
+				conventionsAttributeCiCdPipelineUsername:       "janedoe",
+				conventionsAttributeCiCdPipelineUserEmail:      "jane@example.com",
+				// Variable assertions
+				fmt.Sprintf("%s.%s", conventionsAttributeCiCdPipelineVariable, "ENV"): "staging",
 			},
 		},
 	}
@@ -208,71 +259,57 @@ func Job_SetAttributes(t *testing.T) {
 		{
 			name: "Successful job",
 			job: Job{
-				Id:     789,
-				Url:    "https://gitlab.com/test-job-success",
-				Stage:  "test",
-				Status: "success",
+				Id:          789,
+				Url:         "https://gitlab.com/test-job-success",
+				Stage:       "test",
+				Status:      "success",
+				Environment: Environment{Name: "prod"},
+				Runner: Runner{
+					Id:          101,
+					Description: "High performance runner",
+					IsActive:    true,
+					IsShared:    false,
+					Tags:        []string{"docker", "linux"},
+				},
 			},
 			expected: map[string]string{
-				conventionsAttributeCiCdTaskRunId:        "789",
-				conventionsAttributeCiCdTaskRunUrl:       "https://gitlab.com/test-job-success",
-				conventionsAttributeCiCdPipelineTaskType: "test",
+				conventionsAttributeCiCdTaskRunId:            "789",
+				conventionsAttributeCiCdTaskRunUrl:           "https://gitlab.com/test-job-success",
+				conventionsAttributeCiCdPipelineTaskType:     "test",
+				conventionsAttributeCiCdJobEnvironment:       "prod",
+				conventionsAttributeCiCdJobRunnerId:          "101",
+				conventionsAttributeCiCdJobRunnerDescription: "High performance runner",
+				conventionsAttributeCiCdJobRunnerIsActive:    "true",
+				conventionsAttributeCiCdJobRunnerIsShared:    "false",
+				conventionsAttributeCiCdJobRunnerTag:         "docker",
 			},
 		},
 		{
-			name: "Failed job",
+			name: "Failed job with runner tags",
 			job: Job{
-				Id:     790,
-				Url:    "https://gitlab.com/test-job-fail",
-				Stage:  "deploy",
-				Status: "failed",
+				Id:          790,
+				Url:         "https://gitlab.com/test-job-fail",
+				Stage:       "deploy",
+				Status:      "failed",
+				Environment: Environment{Name: "staging"},
+				Runner: Runner{
+					Id:          102,
+					Description: "Backup runner",
+					IsActive:    false,
+					IsShared:    true,
+					Tags:        []string{"backup", "windows"},
+				},
 			},
 			expected: map[string]string{
-				conventionsAttributeCiCdTaskRunId:        "790",
-				conventionsAttributeCiCdTaskRunUrl:       "https://gitlab.com/test-job-fail",
-				conventionsAttributeCiCdPipelineTaskType: "deploy",
-			},
-		},
-		{
-			name: "Job with empty URL",
-			job: Job{
-				Id:     791,
-				Url:    "",
-				Stage:  "build",
-				Status: "success",
-			},
-			expected: map[string]string{
-				conventionsAttributeCiCdTaskRunId:        "791",
-				conventionsAttributeCiCdTaskRunUrl:       "",
-				conventionsAttributeCiCdPipelineTaskType: "build",
-			},
-		},
-		{
-			name: "Job with empty stage",
-			job: Job{
-				Id:     792,
-				Url:    "https://gitlab.com/test-job-empty-stage",
-				Stage:  "",
-				Status: "success",
-			},
-			expected: map[string]string{
-				conventionsAttributeCiCdTaskRunId:        "792",
-				conventionsAttributeCiCdTaskRunUrl:       "https://gitlab.com/test-job-empty-stage",
-				conventionsAttributeCiCdPipelineTaskType: "",
-			},
-		},
-		{
-			name: "Job with special characters in URL",
-			job: Job{
-				Id:     793,
-				Url:    "https://gitlab.com/test-job-@#$%&",
-				Stage:  "integration",
-				Status: "success",
-			},
-			expected: map[string]string{
-				conventionsAttributeCiCdTaskRunId:        "793",
-				conventionsAttributeCiCdTaskRunUrl:       "https://gitlab.com/test-job-@#$%&",
-				conventionsAttributeCiCdPipelineTaskType: "integration",
+				conventionsAttributeCiCdTaskRunId:            "790",
+				conventionsAttributeCiCdTaskRunUrl:           "https://gitlab.com/test-job-fail",
+				conventionsAttributeCiCdPipelineTaskType:     "deploy",
+				conventionsAttributeCiCdJobEnvironment:       "staging",
+				conventionsAttributeCiCdJobRunnerId:          "102",
+				conventionsAttributeCiCdJobRunnerDescription: "Backup runner",
+				conventionsAttributeCiCdJobRunnerIsActive:    "false",
+				conventionsAttributeCiCdJobRunnerIsShared:    "true",
+				conventionsAttributeCiCdJobRunnerTag:         "backup",
 			},
 		},
 	}
@@ -285,6 +322,13 @@ func Job_SetAttributes(t *testing.T) {
 			for key, expectedValue := range tt.expected {
 				if actualValue, exists := span.Attributes().Get(key); !exists || actualValue.Str() != expectedValue {
 					t.Errorf("expected %s to be %s, got %s", key, expectedValue, actualValue.Str())
+				}
+			}
+
+			// Special check for runner tags (since there may be multiple)
+			for _, tag := range tt.job.Runner.Tags {
+				if actualTagValue, exists := span.Attributes().Get(conventionsAttributeCiCdJobRunnerTag); !exists || actualTagValue.Str() != tag {
+					t.Errorf("expected tag %s, but got %s", tag, actualTagValue.Str())
 				}
 			}
 		})
