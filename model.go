@@ -78,6 +78,7 @@ type Job struct {
 	ProjectPath string
 	Runner      Runner      `json:"runner"`
 	Environment Environment `json:"environment"`
+	Duration    float64     `json:"duration"`
 }
 
 type User struct {
