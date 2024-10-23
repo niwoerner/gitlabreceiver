@@ -19,10 +19,18 @@ const (
 
 var typeStr = component.MustNewType("gitlab")
 
+type GitlabPath struct {
+	Refs []string `mapstructure:"refs"`
+}
+type Traces struct {
+	UrlPath string     `mapstructure:"url_path,omitempty"`
+	Path    GitlabPath `mapstructure:"path"`
+}
 type Config struct {
 	Interval                string `mapstructure:"interval"`
 	confighttp.ServerConfig `mapstructure:",squash"`
-	TracesURLPath           string `mapstructure:"traces_url_path,omitempty"`
+	TracesURLPath           string            `mapstructure:"traces_url_path,omitempty"`
+	Traces                  map[string]Traces `mapstructure:"traces"`
 }
 
 // ToDo: Add validation once needed
