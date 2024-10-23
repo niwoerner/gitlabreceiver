@@ -119,16 +119,16 @@ func (j Job) setAttributes(s ptrace.Span) {
 	}
 
 	rtc := len(j.Runner.Tags)
-	s.Attributes().EnsureCapacity(8 + rtc)
+	s.Attributes().EnsureCapacity(9 + rtc)
 	s.Attributes().PutStr(conventionsAttributeCiCdTaskRunId, strconv.Itoa(j.Id))
 	s.Attributes().PutStr(conventionsAttributeCiCdTaskRunUrl, j.Url)
 	s.Attributes().PutStr(conventionsAttributeCiCdPipelineTaskType, stage)
 	s.Attributes().PutStr(conventionsAttributeCiCdJobEnvironment, j.Environment.Name)
-
 	s.Attributes().PutStr(conventionsAttributeCiCdJobRunnerId, strconv.Itoa(j.Runner.Id))
 	s.Attributes().PutStr(conventionsAttributeCiCdJobRunnerDescription, j.Runner.Description)
 	s.Attributes().PutStr(conventionsAttributeCiCdJobRunnerIsActive, strconv.FormatBool(j.Runner.IsActive))
 	s.Attributes().PutStr(conventionsAttributeCiCdJobRunnerIsShared, strconv.FormatBool(j.Runner.IsShared))
+	s.Attributes().PutStr(conventionsAttributeCiCdJobDuration, strconv.Itoa(int(j.Duration)))
 
 	for _, t := range j.Runner.Tags {
 		s.Attributes().PutStr(conventionsAttributeCiCdJobRunnerTag, t)

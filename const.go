@@ -34,8 +34,8 @@ const (
 	conventionsAttributeCiCdPipelineCommitAuthorEmail = "cicd.pipeline.commit.author.email"
 
 	//Job
-	conventionsAttributeCiCdJobEnvironment = "cicd.job.environment"
-
+	conventionsAttributeCiCdJobEnvironment       = "cicd.job.environment"
+	conventionsAttributeCiCdJobDuration          = "cicd.job.duration"
 	conventionsAttributeCiCdJobRunnerId          = "cicd.job.runner.id"
 	conventionsAttributeCiCdJobRunnerDescription = "cicd.job.runner.description"
 	conventionsAttributeCiCdJobRunnerIsActive    = "cicd.job.runner.active"
