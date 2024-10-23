@@ -44,11 +44,26 @@ const (
 			}
 		]
 	}`
+	pipelineOnFeatureBranch = `{
+		"object_kind": "pipeline",
+		"object_attributes": {
+			"id": 1234567890,
+			"ref": "xyz"
+		},
+		"builds": [
+			{
+				"id": 7961245403,
+				"stage": "stage1",
+				"name": "job1",
+				"status": "finished"
+			}
+		]
+	}`
 )
 
 func TestGitlabReceiverHttpServer(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
-	t.Cleanup(cancel) //clean up allocated resource when the test is finished
+	t.Cleanup(cancel) // Clean up allocated resource when the test is finished
 
 	s := receivertest.NewNopSettings()
 	host := componenttest.NewNopHost()
@@ -75,6 +90,7 @@ func TestGitlabReceiverHttpServer(t *testing.T) {
 		reqBody    []byte
 		resBody    string
 		statusCode int
+		refs       []string // Add refs to config for testing
 	}{
 		{
 			name:       "unsupported httpMethod",
@@ -94,12 +110,35 @@ func TestGitlabReceiverHttpServer(t *testing.T) {
 			reqBody:    []byte(pipelineCreatedJobPending),
 			resBody:    "OK",
 			statusCode: http.StatusOK,
+		}, {
+			name:       "valid request but not to be exported ref",
+			httpMethod: http.MethodPost,
+			reqBody:    []byte(pipelineOnFeatureBranch),
+			resBody:    "Not configured to be exported",
+			statusCode: http.StatusOK,
+			refs:       []string{"master"},
+		}, {
+			name:       "valid request and default refs value",
+			httpMethod: http.MethodPost,
+			reqBody:    []byte(pipelineOnFeatureBranch),
+			resBody:    "OK",
+			statusCode: http.StatusOK,
+			refs:       []string{},
+		}, {
+			name:       "valid request and custom refs value",
+			httpMethod: http.MethodPost,
+			reqBody:    []byte(pipelineOnFeatureBranch),
+			resBody:    "OK",
+			statusCode: http.StatusOK,
+			refs:       []string{"xyz"},
 		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			request, err := http.NewRequest(tc.httpMethod, fmt.Sprintf("http://%s%s", cfg.Endpoint, cfg.TracesURLPath), bytes.NewReader(tc.reqBody))
+			glRcvr.cfg.Traces.Refs = tc.refs
+
+			request, err := http.NewRequest(tc.httpMethod, fmt.Sprintf("http://%s%s", cfg.Endpoint, cfg.Traces.UrlPath), bytes.NewReader(tc.reqBody))
 			request.Header.Set("Content-Type", "application/json")
 			request.Header.Set("X-Gitlab-Event", "Pipeline Hook")
 			require.NoError(t, err, "Unable to create a request")

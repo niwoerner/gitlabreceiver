@@ -10,10 +10,11 @@ This project is **not** officially affiliated with the CNCF project [OpenTelemet
 
 ```yaml
 receivers:
-  gitlab:
-    endpoint: localhost:9286 
-    traces_url_path: /v0.1/traces
-
+  gitlab: 
+    endpoint: localhost:9286
+    traces:
+      url_path: "/v0.1/traces"
+      refs: ["main", "master"] #By default all refs will be accpeted
 service:
   pipelines:
     traces:
