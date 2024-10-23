@@ -34,9 +34,11 @@ func TestSanitizeUrlPath(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			config := &Config{
-				TracesURLPath: tc.url,
+				Traces: Traces{
+					UrlPath: tc.url,
+				},
 			}
-			u, err := sanitizeURLPath(config.TracesURLPath)
+			u, err := sanitizeURLPath(config.Traces.UrlPath)
 			require.NoError(t, err, "error sanitizing url")
 			assert.Equal(t, tc.expectedResult, u, "Must match the expected url")
 		})

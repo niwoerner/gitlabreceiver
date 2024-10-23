@@ -1,6 +1,7 @@
 package gitlabreceiver
 
 import (
+	"errors"
 	"fmt"
 	"net/url"
 	"path"
@@ -15,26 +16,26 @@ import (
 const (
 	defaultInterval      = 10 * time.Second
 	defaultTracesUrlPath = "/v0.1/traces"
+	gitlabPathPrefix     = "path-"
 )
 
 var typeStr = component.MustNewType("gitlab")
 
-type GitlabPath struct {
-	Refs []string `mapstructure:"refs"`
-}
 type Traces struct {
-	UrlPath string     `mapstructure:"url_path,omitempty"`
-	Path    GitlabPath `mapstructure:"path"`
+	UrlPath string   `mapstructure:"url_path,omitempty"`
+	Refs    []string `mapstructure:"refs,omitempty"`
 }
+
 type Config struct {
 	Interval                string `mapstructure:"interval"`
 	confighttp.ServerConfig `mapstructure:",squash"`
-	TracesURLPath           string            `mapstructure:"traces_url_path,omitempty"`
-	Traces                  map[string]Traces `mapstructure:"traces"`
+	Traces                  Traces `mapstructure:"traces"`
 }
 
-// ToDo: Add validation once needed
 func (cfg *Config) Validate() error {
+	if len(cfg.Traces.Refs) > 50 {
+		return errors.New("configured amount of refs is exceeding the limit of 50")
+	}
 	return nil
 }
 
@@ -44,7 +45,10 @@ func createDefaultConfig() component.Config {
 		ServerConfig: confighttp.ServerConfig{
 			Endpoint: "localhost:9286",
 		},
-		TracesURLPath: defaultTracesUrlPath,
+		Traces: Traces{
+			UrlPath: defaultTracesUrlPath,
+			Refs:    []string{},
+		},
 	}
 }
 
@@ -53,7 +57,7 @@ func (cfg *Config) Unmarshal(conf *confmap.Conf) error {
 	if err != nil {
 		return err
 	}
-	cfg.TracesURLPath, err = sanitizeURLPath(cfg.TracesURLPath)
+	cfg.Traces.UrlPath, err = sanitizeURLPath(cfg.Traces.UrlPath)
 	if err != nil {
 		return err
 	}

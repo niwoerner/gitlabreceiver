@@ -46,6 +46,7 @@ type glPipelineEvent struct {
 type Pipeline struct {
 	Id             int         `json:"id"`
 	Status         string      `json:"status"`
+	Ref            string      `json:"ref"`
 	Url            string      `json:"url"`
 	CreatedAt      string      `json:"created_at"`
 	FinishedAt     string      `json:"finished_at"`

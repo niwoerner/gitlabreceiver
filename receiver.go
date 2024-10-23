@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"slices"
 	"sync"
 	"time"
 
@@ -79,7 +80,7 @@ func (glRcvr *gitlabReceiver) startHTTPServer(ctx context.Context, host componen
 	}
 
 	if glRcvr.nextTracesConsumer != nil {
-		httpMux.HandleFunc(glRcvr.cfg.TracesURLPath, func(resp http.ResponseWriter, req *http.Request) {
+		httpMux.HandleFunc(glRcvr.cfg.Traces.UrlPath, func(resp http.ResponseWriter, req *http.Request) {
 			glRcvr.handleTraces(ctx, resp, req)
 		})
 	}
@@ -115,6 +116,15 @@ func (glRcvr *gitlabReceiver) handleTraces(ctx context.Context, w http.ResponseW
 	glPipelineEvent := glEvent.(*glPipelineEvent)
 	glRcvr.glResource = glPipelineEvent
 
+	if len(glRcvr.cfg.Traces.Refs) > 0 && !slices.Contains(glRcvr.cfg.Traces.Refs, glPipelineEvent.Pipeline.Ref) {
+		glRcvr.logger.Info("Received ref is not configured to be exported.", zap.String("Pipeline", glPipelineEvent.Pipeline.Url), zap.String("Ref", glPipelineEvent.Pipeline.Ref))
+		_, err = w.Write([]byte("Not configured to be exported"))
+		if err != nil {
+			glRcvr.logger.Error("Unable to send response", zap.Error(err))
+		}
+		return
+	}
+
 	// we only want to export the root span if the pipeline is finished
 	//finished date and running status would inidcate some sort of retry/restart which we want to export once it is finished in a separate trace
 	if glPipelineEvent.Pipeline.FinishedAt != "" && glPipelineEvent.Pipeline.Status != "running" {
@@ -134,15 +144,15 @@ func (glRcvr *gitlabReceiver) handleTraces(ctx context.Context, w http.ResponseW
 
 func (glRcvr *gitlabReceiver) validateReq(req *http.Request) error {
 	if req.Method != http.MethodPost {
-		return errors.New("Invalid HTTP method")
+		return errors.New("invalid HTTP method")
 	}
 
 	if req.Header.Get("Content-Type") != "application/json" {
-		return errors.New("Request has unsupported content type")
+		return errors.New("request has unsupported content type")
 	}
 
 	if req.Header.Get("X-Gitlab-Event") != "Pipeline Hook" {
-		return errors.New("Invalid request header")
+		return errors.New("invalid request header")
 	}
 
 	return nil
