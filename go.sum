@@ -139,6 +139,8 @@ go.opentelemetry.io/collector/receiver/receiverprofiles v0.111.0 h1:oYLAdGMQQR7g
 go.opentelemetry.io/collector/receiver/receiverprofiles v0.111.0/go.mod h1:M/OfdEGnvyB+fSTSW4RPKj5N06FXL8oKSIf60FlrKmM=
 go.opentelemetry.io/collector/semconv v0.111.0 h1:ELleMtLBzeZ3xhfhYPmFcLc0hJMqRxhOB0eY60WLivw=
 go.opentelemetry.io/collector/semconv v0.111.0/go.mod h1:zCJ5njhWpejR+A40kiEoeFm1xq1uzyZwMnRNX6/D82A=
+go.opentelemetry.io/collector/semconv v0.112.0 h1:JPQyvZhlNLVSuVI+FScONaiFygB7h7NTZceUEKIQUEc=
+go.opentelemetry.io/collector/semconv v0.112.0/go.mod h1:zCJ5njhWpejR+A40kiEoeFm1xq1uzyZwMnRNX6/D82A=
 go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.55.0 h1:ZIg3ZT/aQ7AfKqdwp7ECpOK6vHqquXXuyTjIO8ZdmPs=
 go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.55.0/go.mod h1:DQAwmETtZV00skUwgD6+0U89g80NKsJE3DCKeLLPQMI=
 go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.56.0 h1:UP6IpuHFkUgOQL9FFQFrZ+5LiwhhYRbi7VZSIx6Nj5s=
