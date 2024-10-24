@@ -58,17 +58,17 @@ dist:
   name: otelcol-dev
   description: Basic OTel Collector distribution for Developers
   output_path: ./otelcol-dev
-  otelcol_version: 0.111.0
+  otelcol_version: 0.112.0
 
 exporters:
-  - gomod: go.opentelemetry.io/collector/exporter/debugexporter v0.111.0
-  - gomod: go.opentelemetry.io/collector/exporter/otlpexporter v0.111.0
+  - gomod: go.opentelemetry.io/collector/exporter/debugexporter v0.112.0
+  - gomod: go.opentelemetry.io/collector/exporter/otlpexporter v0.112.0
 
 processors:
-  - gomod: go.opentelemetry.io/collector/processor/batchprocessor v0.111.0
+  - gomod: go.opentelemetry.io/collector/processor/batchprocessor v0.112.0
 
 receivers:
-  - gomod: go.opentelemetry.io/collector/receiver/otlpreceiver v0.111.0
+  - gomod: go.opentelemetry.io/collector/receiver/otlpreceiver v0.112.0
   - gomod: github.com/nw0rn/gitlabreceiver v0.101.0
 
 providers:
@@ -80,7 +80,7 @@ providers:
 ```
 
 ```sh
-go install go.opentelemetry.io/collector/cmd/builder@v0.111.0
+go install go.opentelemetry.io/collector/cmd/builder@v0.112.0
 builder --config=builder.yaml
 ```
 
