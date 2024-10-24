@@ -3,12 +3,13 @@ package gitlabreceiver
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"slices"
 	"sync"
-	"time"
 
 	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/component/componentstatus"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/receiver"
 	"go.uber.org/zap"
@@ -38,20 +39,10 @@ func (glRcvr *gitlabReceiver) Start(ctx context.Context, host component.Host) er
 	glRcvr.host = host
 	ctx, glRcvr.cancel = context.WithCancel(ctx)
 
-	interval, _ := time.ParseDuration(glRcvr.cfg.Interval)
 	go func() {
-		ticker := time.NewTicker(interval)
-		defer ticker.Stop()
 		err := glRcvr.startHTTPServer(ctx, host)
 		if err != nil {
 			glRcvr.logger.Panic("Unable to start", zap.Error(err))
-		}
-		//ToDo: Remove interval loop - only used for logging output for now
-		for {
-			select {
-			case <-ticker.C:
-				glRcvr.logger.Info("The gitlab receiver is running")
-			}
 		}
 	}()
 	return nil
@@ -85,13 +76,11 @@ func (glRcvr *gitlabReceiver) startHTTPServer(ctx context.Context, host componen
 		})
 	}
 
-	glRcvr.logger.Info("Starting HTTP Server", zap.String("endpoint", glRcvr.cfg.Endpoint))
-
 	glRcvr.shutdownWG.Add(1)
 	go func() {
 		defer glRcvr.shutdownWG.Done()
 		if err := glRcvr.httpServer.Serve(listener); err != nil && err != http.ErrServerClosed {
-			glRcvr.logger.Error("Error starting HTTP server", zap.String("error", err.Error()))
+			componentstatus.ReportStatus(host, componentstatus.NewFatalErrorEvent(fmt.Errorf("error starting the gitlab receiver: %w", err)))
 		}
 	}()
 
@@ -126,7 +115,7 @@ func (glRcvr *gitlabReceiver) handleTraces(ctx context.Context, w http.ResponseW
 	}
 
 	// we only want to export the root span if the pipeline is finished
-	//finished date and running status would inidcate some sort of retry/restart which we want to export once it is finished in a separate trace
+	// finished date and running status would inidcate some sort of retry/restart which we want to export once it is finished in a separate trace
 	if glPipelineEvent.Pipeline.FinishedAt != "" && glPipelineEvent.Pipeline.Status != "running" {
 		err = glRcvr.exportTraces(ctx)
 		if err != nil {

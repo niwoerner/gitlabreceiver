@@ -22,6 +22,7 @@ require (
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
 	github.com/pierrec/lz4/v4 v4.1.21 // indirect
+	go.opentelemetry.io/collector/component/componentstatus v0.112.0 // indirect
 	go.opentelemetry.io/collector/consumer/consumererror v0.112.0 // indirect
 )
 
@@ -53,7 +54,7 @@ require (
 	go.opentelemetry.io/collector/extension/auth v0.112.0 // indirect
 	go.opentelemetry.io/collector/internal/globalsignal v0.111.0 // indirect
 	go.opentelemetry.io/collector/pdata/pprofile v0.112.0 // indirect
-	go.opentelemetry.io/collector/pipeline v0.111.0 // indirect
+	go.opentelemetry.io/collector/pipeline v0.112.0 // indirect
 	go.opentelemetry.io/collector/receiver/receiverprofiles v0.111.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.56.0 // indirect
 	go.opentelemetry.io/otel v1.31.0 // indirect

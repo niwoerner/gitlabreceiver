@@ -90,7 +90,7 @@ func TestGitlabReceiverHttpServer(t *testing.T) {
 		reqBody    []byte
 		resBody    string
 		statusCode int
-		refs       []string // Add refs to config for testing
+		refs       []string
 	}{
 		{
 			name:       "unsupported httpMethod",

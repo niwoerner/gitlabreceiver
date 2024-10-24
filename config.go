@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/url"
 	"path"
-	"time"
 
 	"go.opentelemetry.io/collector/confmap"
 
@@ -14,7 +13,6 @@ import (
 )
 
 const (
-	defaultInterval      = 10 * time.Second
 	defaultTracesUrlPath = "/v0.1/traces"
 	gitlabPathPrefix     = "path-"
 )
@@ -27,7 +25,6 @@ type Traces struct {
 }
 
 type Config struct {
-	Interval                string `mapstructure:"interval"`
 	confighttp.ServerConfig `mapstructure:",squash"`
 	Traces                  Traces `mapstructure:"traces"`
 }
@@ -41,7 +38,6 @@ func (cfg *Config) Validate() error {
 
 func createDefaultConfig() component.Config {
 	return &Config{
-		Interval: defaultInterval.String(),
 		ServerConfig: confighttp.ServerConfig{
 			Endpoint: "localhost:9286",
 		},
