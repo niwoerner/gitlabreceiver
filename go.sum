@@ -147,8 +147,12 @@ go.opentelemetry.io/collector/pipeline v0.112.0 h1:jqKDdb8k53OLPibvxzX6fmMec0ZHA
 go.opentelemetry.io/collector/pipeline v0.112.0/go.mod h1:4vOvjVsoYTHVGTbfFwqfnQOSV2K3RKUHofh3jNRc2Mg=
 go.opentelemetry.io/collector/receiver v0.111.0 h1:6cRHZ9cUxYfRPkArUCkIhoo7Byf6tq/2qvbMIKlhG3s=
 go.opentelemetry.io/collector/receiver v0.111.0/go.mod h1:QSl/n9ikDP+6n39QcRY/VLjwQI0qbT1RQp512uBQl3g=
+go.opentelemetry.io/collector/receiver v0.112.0 h1:gdTBDOPGKMZlZghtN5A7ZLNlNwCHWYcoJQeIiXvyGEQ=
+go.opentelemetry.io/collector/receiver v0.112.0/go.mod h1:3QmfSUiyFzRTnHUqF8fyEvQpU5q/xuwS43jGt8JXEEA=
 go.opentelemetry.io/collector/receiver/receiverprofiles v0.111.0 h1:oYLAdGMQQR7gB6wVkbV0G4EMsrmiOs3O0qf3hh/3avw=
 go.opentelemetry.io/collector/receiver/receiverprofiles v0.111.0/go.mod h1:M/OfdEGnvyB+fSTSW4RPKj5N06FXL8oKSIf60FlrKmM=
+go.opentelemetry.io/collector/receiver/receiverprofiles v0.112.0 h1:SShkZsWRsFss3iWZa9JwMC7h4gD5RbWDhUcz1/9dXSs=
+go.opentelemetry.io/collector/receiver/receiverprofiles v0.112.0/go.mod h1:615smszDXiz4YWwXslxlAjX7FzOVDU7Bk6xARFk+zpk=
 go.opentelemetry.io/collector/semconv v0.111.0 h1:ELleMtLBzeZ3xhfhYPmFcLc0hJMqRxhOB0eY60WLivw=
 go.opentelemetry.io/collector/semconv v0.111.0/go.mod h1:zCJ5njhWpejR+A40kiEoeFm1xq1uzyZwMnRNX6/D82A=
 go.opentelemetry.io/collector/semconv v0.112.0 h1:JPQyvZhlNLVSuVI+FScONaiFygB7h7NTZceUEKIQUEc=
