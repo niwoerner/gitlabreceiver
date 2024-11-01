@@ -119,7 +119,7 @@ func (j Job) setAttributes(s ptrace.Span) {
 	}
 
 	rtc := len(j.Runner.Tags)
-	s.Attributes().EnsureCapacity(9 + rtc)
+	s.Attributes().EnsureCapacity(11 + rtc)
 	s.Attributes().PutStr(conventionsAttributeCiCdTaskRunId, strconv.Itoa(j.Id))
 	s.Attributes().PutStr(conventionsAttributeCiCdTaskRunUrl, j.Url)
 	s.Attributes().PutStr(conventionsAttributeCiCdPipelineTaskType, stage)
@@ -129,6 +129,8 @@ func (j Job) setAttributes(s ptrace.Span) {
 	s.Attributes().PutStr(conventionsAttributeCiCdJobRunnerIsActive, strconv.FormatBool(j.Runner.IsActive))
 	s.Attributes().PutStr(conventionsAttributeCiCdJobRunnerIsShared, strconv.FormatBool(j.Runner.IsShared))
 	s.Attributes().PutStr(conventionsAttributeCiCdJobDuration, strconv.Itoa(int(j.Duration)))
+	s.Attributes().PutStr(conventionsAttributeCiCdPipelineCommitMessage, j.Commit.Message)
+	s.Attributes().PutStr(conventionsAttributeCiCdPipelineCommitTitle, j.Commit.Title)
 
 	for _, t := range j.Runner.Tags {
 		s.Attributes().PutStr(conventionsAttributeCiCdJobRunnerTag, t)
@@ -171,7 +173,6 @@ func parseGitlabTime(t string) (pcommon.Timestamp, error) {
 		return pcommon.NewTimestampFromTime(pt), nil
 	}
 
-	//This return reflects the error case, not the expected case like usually
 	return 0, err
 }
 
