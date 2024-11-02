@@ -80,7 +80,6 @@ type Job struct {
 	Runner      Runner      `json:"runner"`
 	Environment Environment `json:"environment"`
 	Duration    float64     `json:"duration"`
-	Commit      Commit
 }
 
 type User struct {
