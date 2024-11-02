@@ -76,6 +76,8 @@ func (glRcvr *gitlabReceiver) startHTTPServer(ctx context.Context, host componen
 		})
 	}
 
+	glRcvr.settings.Logger.Info("Starting gitlabreceiver", zap.String("endpoint", glRcvr.cfg.Endpoint))
+
 	glRcvr.shutdownWG.Add(1)
 	go func() {
 		defer glRcvr.shutdownWG.Done()
