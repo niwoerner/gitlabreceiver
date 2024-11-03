@@ -54,6 +54,10 @@ func (p *glPipelineEvent) newTrace() (*ptrace.Traces, error) {
 	rs.Resource().Attributes().PutStr(conventionsAttributeSpanSource, fmt.Sprintf("%s-receiver", typeStr.String()))
 	rs.Resource().Attributes().PutStr(conventionsAttributeCiCdPipelineCommitTitle, p.Commit.Title)
 	rs.Resource().Attributes().PutStr(conventionsAttributeCiCdPipelineCommitMessage, p.Commit.Message)
+	rs.Resource().Attributes().PutStr(conventionsAttributeCiCdRepositoryName, p.Project.Name)
+	rs.Resource().Attributes().PutStr(conventionsAttributeCiCdRepositoryUrl, p.Project.Url)
+	rs.Resource().Attributes().PutStr(conventionsAttributeCiCdRepositoryPath, p.Project.Path)
+	rs.Resource().Attributes().PutStr(conventionsAttributeCiCdRepositoryId, strconv.Itoa(p.Project.Id))
 
 	//The pipeline span is the root span, therefore 0 bytes for the parentSpanId
 	createSpan(rs, traceId, rootSpanId, [8]byte{0, 0, 0, 0, 0, 0, 0, 0}, pipelineName, startTime, endTime, p)
@@ -121,7 +125,7 @@ func (j Job) setAttributes(s ptrace.Span) {
 	}
 
 	rtc := len(j.Runner.Tags)
-	s.Attributes().EnsureCapacity(9 + rtc)
+	s.Attributes().EnsureCapacity(10 + rtc)
 	s.Attributes().PutStr(conventionsAttributeCiCdTaskRunId, strconv.Itoa(j.Id))
 	s.Attributes().PutStr(conventionsAttributeCiCdTaskRunUrl, j.Url)
 	s.Attributes().PutStr(conventionsAttributeCiCdPipelineTaskType, stage)
@@ -131,6 +135,7 @@ func (j Job) setAttributes(s ptrace.Span) {
 	s.Attributes().PutStr(conventionsAttributeCiCdJobRunnerIsActive, strconv.FormatBool(j.Runner.IsActive))
 	s.Attributes().PutStr(conventionsAttributeCiCdJobRunnerIsShared, strconv.FormatBool(j.Runner.IsShared))
 	s.Attributes().PutStr(conventionsAttributeCiCdJobDuration, strconv.Itoa(int(j.Duration)))
+	s.Attributes().PutStr(conventionsAttributeCiCdJobName, j.Name)
 
 	for _, t := range j.Runner.Tags {
 		s.Attributes().PutStr(conventionsAttributeCiCdJobRunnerTag, t)

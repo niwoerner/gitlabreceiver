@@ -16,6 +16,12 @@ const (
 	//General
 	conventionsAttributeSpanSource = "span.source"
 
+	//Repo
+	conventionsAttributeCiCdRepositoryName = "cicd.repository.name"
+	conventionsAttributeCiCdRepositoryUrl  = "cicd.repository.url"
+	conventionsAttributeCiCdRepositoryPath = "cicd.repository.path"
+	conventionsAttributeCiCdRepositoryId   = "cicd.repository.id"
+
 	//Pipeline
 	conventionsAttributeCiCdPipelineUrl            = "cicd.pipeline.url"
 	conventionsAttributeCiCdParentPipelineId       = "cicd.parent.pipeline.run.id"
@@ -34,6 +40,7 @@ const (
 	conventionsAttributeCiCdPipelineCommitAuthorEmail = "cicd.pipeline.commit.author.email"
 
 	//Job
+	conventionsAttributeCiCdJobName              = "cicd.job.name"
 	conventionsAttributeCiCdJobEnvironment       = "cicd.job.environment"
 	conventionsAttributeCiCdJobDuration          = "cicd.job.duration"
 	conventionsAttributeCiCdJobRunnerId          = "cicd.job.runner.id"
