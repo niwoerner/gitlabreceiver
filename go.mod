@@ -11,7 +11,7 @@ require (
 	go.opentelemetry.io/collector/consumer/consumertest v0.112.0
 	go.opentelemetry.io/collector/pdata v1.18.0
 	go.opentelemetry.io/collector/receiver v0.112.0
-	go.opentelemetry.io/collector/semconv v0.112.0
+	go.opentelemetry.io/collector/semconv v0.115.0
 	go.uber.org/zap v1.27.0
 )
 
