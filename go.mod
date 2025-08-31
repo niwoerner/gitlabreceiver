@@ -3,7 +3,7 @@ module github.com/nw0rn/gitlabreceiver
 go 1.22.0
 
 require (
-	github.com/stretchr/testify v1.10.0
+	github.com/stretchr/testify v1.11.1
 	go.opentelemetry.io/collector/component v0.115.0
 	go.opentelemetry.io/collector/component/componentstatus v0.115.0
 	go.opentelemetry.io/collector/component/componenttest v0.115.0
